@@ -1,0 +1,32 @@
+apiVersion: audit.k8s.io/v1
+kind: Policy
+# Don't generate audit events for all requests in RequestReceived stage.
+omitStages:
+  - "RequestReceived"
+rules:
+  # Don't log "pods/log", "pods/status"
+  - level: None
+    resources:
+    - group: ""
+      resources: ["pods/log", "pods/status"]
+  # Log configmap at the RequestResponse level.
+  - level: Request
+    resources:
+    - group: ""
+      resources: ["configmaps"]
+  # Log pod and service changes in all namespaces at the Request level.
+  - level: RequestResponse
+    resources:
+    - group: ""
+      resources: ["pods", "services"]
+  # Log secret changes in all namespaces at the Metadata level.
+  - level: Metadata
+    resources:
+    - group: ""
+      resources: ["secrets"]
+  # A catch-all rule to log all other requests at the Metadata level.
+  - level: Metadata
+    # Long-running requests like watches that fall under this rule will not
+    # generate an audit event in RequestReceived.
+    omitStages:
+      - "RequestReceived"
